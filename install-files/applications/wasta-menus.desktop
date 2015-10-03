@@ -1,0 +1,8 @@
+
+[Desktop Entry]
+Name=wasta [Menus]
+Comment=Enable, Disable, or Reset your Wasta-Menus
+Exec=wasta-menus
+Type=Application
+Icon=wasta-menus
+Categories=Application;System;

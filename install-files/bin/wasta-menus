@@ -1,0 +1,350 @@
+#!/bin/bash
+
+# ==============================================================================
+# wasta-menus
+#
+# This script is used to ENABLE, DISABLE, or REMOVE a user's Wasta-Menus.
+#
+# MANY THANKS to the LSDev Balsa team for the original concept.
+#
+#   2014-01-09 rik: Initial script
+#   2014-01-21 rik: Added Gnome Wasta Menu processing (now wasta-menus will
+#       process on cinnamon AND gnome menus)
+#   2014-06-09 rik: adding pkexec hack to prompt for admin password.  Admin
+#       ID not needed for script changes, but don't want limited users running.
+#   2015-09-27 rik: correcting gnome menu name to gnome-applications.menu for
+#       compatibility with Ubuntu Trust (+)
+#
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Ensure script running as regular user
+# ------------------------------------------------------------------------------
+if [ $(id -u) -eq 0 ]
+then
+    echo "This script should NOT be run with SUDO!  Must be regular user!!"
+    echo "Exiting...."
+    sleep 5s
+    exit 1
+fi
+
+# ------------------------------------------------------------------------------
+# Hack to ensure user knows an admin password: but again changes are made at the
+#   user level, so this is just a hack but no admin password actually needed :)
+# ------------------------------------------------------------------------------
+pkexec echo "starting wasta-menus"
+RETURN=$?
+if [ $RETURN -ne 0 ];
+then
+    echo
+    echo "*** Administrative Authentication failed, wasta-menus exiting..."
+    echo
+    exit 1
+fi
+
+# ------------------------------------------------------------------------------
+# Initial Prompt
+# ------------------------------------------------------------------------------
+
+PARM=""
+PARM=$(zenity --list --title "Wasta-Menus" \
+    --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
+    --height=450 --text \
+"This utility <b>ENABLES</b> or <b>DISABLES</b> the current user's Wasta-Menus,
+    which reduce the applications visible in the Main Menu.
+
+Additionally, a user's Wasta-Menus can be <b>REMOVED</b> to completely remove
+    any saved Wasta-Menus settings.
+
+If there is any problem with a user's Wasta-Menus and they need <b>RESET</b>,
+    first <b>REMOVE</b> them and then <b>ENABLE</b> them again.
+
+Use <b>Wasta-Menus Add App</b> to add additional applications to the current
+    user's Wasta-Menus.
+
+<b>SELECT the Wasta-Menus ACTION you want to perform:</b>"  --radiolist \
+    --column "" --column "Action" --column "Description" \
+    FALSE       ON                "'ENABLE' Wasta-Menus"\
+    FALSE       OFF               "'DISABLE' Wasta-Menus"\
+    FALSE       REMOVE            "'REMOVE' current user's Wasta-Menus settings")
+
+if [ -z "$PARM" ];
+then
+    zenity --info --no-wrap \
+        --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
+        --text "No Wasta-Menus <b>ACTION</b> selected.  Exiting..."
+    exit 0
+fi
+
+# ------------------------------------------------------------------------------
+# Main Processing
+# ------------------------------------------------------------------------------
+
+MSG=""
+WASTA_USER_APPS_DIR="$HOME/.local/share/applications-wasta"
+WASTA_MENUS_ENABLED=""
+
+
+# check to see if wasta-menus is enabled:
+#   if any *applications.menu contain link to applications-wasta then enabled
+#   '|| true;' appended ensures no error thrown if file(s) not found
+WASTA_MENUS_ENABLED=$(grep '.local/share/applications-wasta' $HOME/.config/menus/*applications.menu || true;)
+
+case "$PARM" in
+    ON)
+        # ----------------------------------------------------------------------
+        # Ensure cinnamon-applications set for applications-wasta
+        # ----------------------------------------------------------------------
+        if [ -z "$WASTA_MENUS_ENABLED" ];
+        then
+            MSG+="<b>ENABLING</b> Wasta-Menus for current user...\n\n"
+            
+            # Backup Cinnamon Menu
+            if [ -f $HOME/.config/menus/cinnamon-applications.menu ];
+            then
+                MSG+="Backing up existing Cinnamon Main Menu Configuration.\n\n"
+                mv $HOME/.config/menus/cinnamon-applications.menu \
+                    $HOME/.config/menus/cinnamon-applications-save.menu
+            fi
+
+            # Backup GNOME Menu
+            if [ -f $HOME/.config/menus/gnome-applications.menu ];
+            then
+                MSG+="Backing up existing GNOME Main Menu Configuration.\n\n"
+                mv $HOME/.config/menus/gnome-applications.menu \
+                    $HOME/.config/menus/gnome-applications-save.menu
+            fi
+
+            # Backup XFCE Menu
+            if [ -f $HOME/.config/menus/xfce-applications.menu ];
+            then
+                MSG+="Backing up existing XFCE Main Menu Configuration.\n\n"
+                mv $HOME/.config/menus/xfce-applications.menu \
+                    $HOME/.config/menus/xfce-applications-save.menu
+            fi
+
+            # Restore Cinnamon Wasta Menu
+            if [ -f $HOME/.config/menus/cinnamon-applications-wasta.menu ];
+            then
+                MSG+="Restoring saved Cinnamon Wasta-Menus Configuration for current user.\n\n"
+                cp $HOME/.config/menus/cinnamon-applications-wasta.menu \
+                    $HOME/.config/menus/cinnamon-applications.menu
+            elif [ -e /etc/xdg/menus/cinnamon-applications.menu ];
+            then
+                MSG+=\
+"No existing Cinnamon Wasta-Menus Configuration found for current user.\n
+Copying in default Cinnamon Wasta-Menus Configuration.\n\n"
+                cp /etc/xdg/menus/cinnamon-applications.menu \
+                    $HOME/.config/menus/cinnamon-applications.menu
+                sed -i -e "s@<DefaultAppDirs/>@<AppDir>$HOME/.local/share/applications-wasta</AppDir>@" \
+                    $HOME/.config/menus/cinnamon-applications.menu
+            fi
+
+            # Restore GNOME Wasta Menu
+            if [ -f $HOME/.config/menus/gnome-applications-wasta.menu ];
+            then
+                MSG+="Restoring saved GNOME Wasta-Menus Configuration for current user.\n\n"
+                cp $HOME/.config/menus/gnome-applications-wasta.menu \
+                    $HOME/.config/menus/gnome-applications.menu
+            elif [ -e /etc/xdg/menus/gnome-applications.menu ];
+            then
+                MSG+=\
+"No existing GNOME Wasta-Menus Configuration found for current user.\n
+Copying in default GNOME Wasta-Menus Configuration.\n\n"
+                cp /etc/xdg/menus/gnome-applications.menu \
+                    $HOME/.config/menus/gnome-applications.menu
+                sed -i -e "s@<DefaultAppDirs/>@<AppDir>$HOME/.local/share/applications-wasta</AppDir>@"\
+                    $HOME/.config/menus/gnome-applications.menu
+            fi
+
+            # Restore XFCE Wasta Menu
+            if [ -f $HOME/.config/menus/xfce-applications-wasta.menu ];
+            then
+                MSG+="Restoring saved XFCE Wasta-Menus Configuration for current user.\n\n"
+                cp $HOME/.config/menus/xfce-applications-wasta.menu \
+                    $HOME/.config/menus/xfce-applications.menu
+            elif [ -e /etc/xdg/menus/xfce-applications.menu ];
+            then
+                MSG+=\
+"No existing XFCE Wasta-Menus Configuration found for current user.\n
+Copying in default XFCE Wasta-Menus Configuration.\n\n"
+                cp /etc/xdg/menus/xfce-applications.menu \
+                    $HOME/.config/menus/xfce-applications.menu
+                sed -i -e "s@<DefaultAppDirs/>@<AppDir>$HOME/.local/share/applications-wasta</AppDir>@"\
+                    $HOME/.config/menus/xfce-applications.menu
+            fi
+
+            MSG+="<b>Wasta-Menus successfully ENABLED</b>\n\n"
+        else
+            # Wasta Menus already Enabled
+            MSG+="Wasta-Menus already <b>ENABLED</b> for current user.\n\n"
+        fi
+
+        # ----------------------------------------------------------------------
+        # Ensure $WASTA_USER_APPS_DIR setup
+        # ----------------------------------------------------------------------
+        if ! [ -d "$WASTA_USER_APPS_DIR" ];
+        then
+            MSG+=\
+"No existing Wasta-Menus Applications List found for current user.\n
+<b>Creating default Wasta-Menus Applications List.</b>\n\n"
+            # create symlinks for wasta-menus (symlinks as part of package don't resolve
+            #   correctly as they are turned into relative links.  So, re-do here:
+
+            # First, create directory
+            mkdir -p "$WASTA_USER_APPS_DIR"
+
+            # default-apps file set using update-alternatives by package
+            # Problem if can't find default-apps file
+            if [ ! -e /etc/wasta-menus-default-apps.txt ];
+            then
+                MSG+=\
+"<b>PROBLEM FOUND: No default Wasta-Menus Applications List</b>
+Work with and Administrator to solve the problem.\n\n"
+            fi
+
+            # read in file
+            #   if trimmed line is empty or starts with #, then ignore and read next
+            #   else, create symlink in user's application directory.
+
+            while read -r LINE
+            do
+                # Trim leading whitespace
+                LINE="${LINE##*( )}"
+                # trim trailing whitespace
+                LINE="${LINE%%*( )}" 
+
+                # Create symlink IF:
+                #   $LINE (trimmed) is NOT ZERO LENGTH  AND first character IS NOT "#"
+                FIRST_CHAR=$(echo -n "$LINE" | head -c1)
+                if [ -n "$LINE" ] && ! [ "$FIRST_CHAR" == "#" ];
+                then
+                    # create symlink in $WASTA_USER_APPS_DIR Dir
+                    ln -sf "$LINE" "$WASTA_USER_APPS_DIR/"
+                fi
+            done < /etc/wasta-menus-default-apps.txt
+        else
+            MSG+="Using existing Wasta-Menus Applications List for current user.\n\n"
+        fi
+    ;;
+
+    OFF)
+        if [ -n "$WASTA_MENUS_ENABLED" ];
+        then
+            MSG+="<b>DISABLING</b> Wasta-Menus for current user...\n\n"
+            # Cinnamon Wasta Menus
+            if [ -e $HOME/.config/menus/cinnamon-applications.menu ];
+            then
+                mv $HOME/.config/menus/cinnamon-applications.menu \
+                    $HOME/.config/menus/cinnamon-applications-wasta.menu
+
+                # Restore Original Cinnamon Menu
+                if [ -f $HOME/.config/menus/cinnamon-applications-save.menu ];
+                then
+                    MSG+="Restoring saved Cinnamon Main Menu Configuration.\n\n"
+                    cp $HOME/.config/menus/cinnamon-applications-save.menu \
+                    $HOME/.config/menus/cinnamon-applications.menu
+                fi
+            fi
+
+            # GNOME Wasta Menus
+            if [ -e $HOME/.config/menus/gnome-applications.menu ];
+            then
+                mv $HOME/.config/menus/gnome-applications.menu \
+                    $HOME/.config/menus/gnome-applications-wasta.menu
+
+                # Restore Original GNOME Menu
+                if [ -f $HOME/.config/menus/gnome-applications-save.menu ];
+                then
+                    MSG+="Restoring saved GNOME Main Menu Configuration.\n\n"
+                    cp $HOME/.config/menus/gnome-applications-save.menu \
+                        $HOME/.config/menus/gnome-applications.menu
+                fi
+            fi
+
+            # XFCE Wasta Menus
+            if [ -e $HOME/.config/menus/xfce-applications.menu ];
+            then
+                mv $HOME/.config/menus/xfce-applications.menu \
+                    $HOME/.config/menus/xfce-applications-wasta.menu
+
+                # Restore Original XFCE Menu
+                if [ -f $HOME/.config/menus/xfce-applications-save.menu ];
+                then
+                    MSG+="Restoring saved XFCE Main Menu Configuration.\n\n"
+                    cp $HOME/.config/menus/xfce-applications-save.menu \
+                        $HOME/.config/menus/xfce-applications.menu
+                fi
+            fi
+
+            MSG+="<b>Wasta-Menus successfully DISABLED</b>\n\n"
+        else
+            MSG+="Wasta-Menus already <b>DISABLED</b> for current user!\n\n <b>No Action Taken!</b>\n\n"
+        fi
+    ;;
+
+    REMOVE)
+        MSG+="Preparing to <b>REMOVE</b> Wasta-Menus for current user...\n\n"
+        # clean wasta-menus (clear out local saved items: wasta menus must be
+        #   turned OFF first, so we know we only have to clear out saved -wasta
+        #   menu and apps.
+
+        # give an "are you sure?" to the user
+        CONFIRM=$(zenity --list --title "REMOVE Wasta-Menus Settings?" \
+            --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
+            --text \
+"<b>Are you sure you want to completely REMOVE
+the current user's Wasta-Menus settings?</b>" --radiolist \
+            --column "" --column "Action" --column "Description" \
+        FALSE YES "YES, I am sure!"\
+        FALSE NO  "NO, do NOT remove!")
+
+        echo "CONFIRM: "$CONFIRM
+
+        if [ "$CONFIRM" == "YES" ];
+        then
+            MSG+="<b>REMOVING</b> Wasta-Menus for current user...\n\n"
+            if [ -n "$WASTA_MENUS_ENABLED" ];
+            then
+                # remove current menu configurations: they are wasta-menus
+                MSG+="Wasta-Menus <b>ENABLED</b>, <b>REMOVING</b>.\n\n"
+                # Cinnamon Menu
+                rm -f $HOME/.config/menus/cinnamon-applications.menu
+                # GNOME Menu
+                rm -f $HOME/.config/menus/gnome-applications.menu
+                # XFCE Menu
+                rm -f $HOME/.config/menus/xfce-applications.menu
+            fi
+            # remove any saved wasta menu configuration
+            MSG+="<b>REMOVING</b> Wasta-Menus saved settings for current user.\n\n"
+            # Cinnamon Wasta Menu
+            rm -f $HOME/.config/menus/cinnamon-applications-wasta.menu
+            # GNOME Wasta Menu
+            rm -f $HOME/.config/menus/gnome-applications-wasta.menu
+            # XFCE Wasta Menu
+            rm -f $HOME/.config/menus/xfce-applications-wasta.menu
+            # remove any wasta applications directory
+            MSG+="<b>REMOVING</b> Wasta-Menus Applications List for current user.\n\n"
+            rm -rf "$WASTA_USER_APPS_DIR"
+
+            MSG+="<b>Wasta-Menus successfully REMOVED</b>\n\n"
+        else
+            MSG+="<b>Wasta-Menus REMOVAL CANCELED!</b>\n\n"
+        fi
+    ;;
+
+    *)
+        MSG+="ERROR: parameter value not recognized!\n\n"
+    ;;
+esac
+
+MSG+="<b>Finished Processing</b>"
+
+# ------------------------------------------------------------------------------
+# Finished
+# ------------------------------------------------------------------------------
+zenity --info --title "Wasta-Menus: Finished" --no-wrap \
+        --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
+        --text "$MSG"
+
+exit 0

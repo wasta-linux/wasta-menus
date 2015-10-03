@@ -1,0 +1,17 @@
+wasta-menus (1.0.0) trusty; urgency=medium
+
+  * adding xfce compatibility: note that whisker-menu still shows many apps
+    in the "All" category from system settings.  Will need to see if can
+    solve that issue later.
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Mon, 28 Sep 2015 11:20:07 +0300
+
+wasta-menus (0.1.1) trusty; urgency=low
+
+  * initial release: split out of wasta-base-setup
+  * using 'update-alternatives' to provide /etc/wasta-menus-default-apps.txt
+    instead of prior method of manually managing symlinks
+  * corrected applications.menu to gnome-applications.menu for trusty (+)
+    compatibility
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Sun, 27 Sep 2015 14:36:03 +0300

@@ -1,0 +1,99 @@
+# ==============================================================================
+# wasta-menus-default-apps.txt:
+#
+# This file should contain all the default wasta-menus apps.
+#
+# 'update-alternatives' is used to define which version of this file is
+#   being used, so that regional customizations can override the default list
+#   installed by the wasta-menus package.
+#
+# Any blank line or a line beginning with a '#' will be ignored.
+#
+# ==============================================================================
+
+# Adapt It
+/usr/share/applications/adaptit.desktop
+
+# Artha
+/usr/share/applications/artha.desktop
+
+# Bibletime
+/usr/share/applications/bibletime.desktop
+
+# Bloom
+/usr/share/applications/bloom.desktop
+
+# Cinnamon Settings
+/usr/share/applications/cinnamon-settings.desktop
+
+# FLEx
+/usr/share/applications/fieldworks-flex.desktop
+
+# Firefox
+/usr/share/applications/firefox.desktop
+
+# Calculator
+/usr/share/applications/gcalctool.desktop
+
+# ClamTK: Anti-Virus
+/usr/share/applications/clamtk.desktop
+
+# Gnome Search Tool
+/usr/share/applications/gnome-search-tool.desktop
+
+# Gedit Text Editor
+/usr/share/applications/gedit.desktop
+
+# Screenshot Utility
+/usr/share/applications/gnome-screenshot.desktop
+
+# Klavaro Typing Tutor
+/usr/share/applications/klavaro.desktop
+
+# LibreOffice Calc
+/usr/share/applications/libreoffice-calc.desktop
+
+# LibreOffice Writer
+/usr/share/applications/libreoffice-writer.desktop
+
+# Nautilus File Manager
+/usr/share/applications/nautilus.desktop
+
+# Nemo File Manager
+/usr/share/applications/nemo.desktop
+
+# ParaTExt
+/usr/share/applications/paratext.desktop
+
+# WeSay
+/usr/share/applications/sil-wesay.desktop
+
+# WeSay Config
+/usr/share/applications/sil-wesay-config.desktop
+
+# Thunar File Manager
+/usr/share/applications/thunar.desktop
+
+# Thunderbird
+/usr/share/applications/thunderbird.desktop
+
+# VLC Media Player
+/usr/share/applications/vlc.desktop
+
+# Wasta-Backup
+/usr/share/applications/wasta-backup.desktop
+
+# Wasta-Linux Cinnamon Reset
+/usr/share/applications/wasta-cinnamon-reset.desktop
+
+# Wasta-Menus
+/usr/share/applications/wasta-menus.desktop
+
+# Wasta-Menus Add App
+/usr/share/applications/wasta-menus-add.desktop
+
+# Wasta-Resources
+/usr/share/applications/wasta-resources.desktop
+
+# Xiphos
+/usr/share/applications/xiphos.desktop

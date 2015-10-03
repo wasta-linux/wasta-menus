@@ -1,0 +1,5 @@
+install-files/applications                 usr/share
+install-files/bin                          usr
+install-files/icons                        usr/share
+install-files/org.wasta.menus.policy       usr/share/polkit-1/actions
+wasta-menus                                usr/share
