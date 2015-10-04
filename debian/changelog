@@ -1,3 +1,9 @@
+wasta-menus (1.0.1) trusty; urgency=medium
+
+  * version bump to facilitate launchpad pull and auto building for PPA.
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Sun, 04 Oct 2015 14:06:04 +0300
+
 wasta-menus (1.0.0) trusty; urgency=medium
 
   * adding xfce compatibility: note that whisker-menu still shows many apps
