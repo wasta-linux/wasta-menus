@@ -28,7 +28,7 @@ then
 fi
 
 LISTDIR=$HOME/.cache/wasta-menus
-WASTA_USER_APPS_DIR="$HOME/.local/share/applications-wasta"
+WASTA_USER_APPS_DIR="$HOME/.local/share/wasta/applications"
 MSG=""
 
 mkdir -p $LISTDIR
