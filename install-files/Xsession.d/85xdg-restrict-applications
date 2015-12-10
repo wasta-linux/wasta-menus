@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# This file is sourced by Xsession(5), not executed.
+
+# Conditionally restrict the set of applications visible to the user
+
+if [ -n "$XDG_DATA_DIRS" -a -x "$HOME"/.local/bin/xdg-restrict-applications ]
+then
+	XDG_DATA_DIRS=$("$HOME"/.local/bin/xdg-restrict-applications "$XDG_DATA_DIRS")
+fi

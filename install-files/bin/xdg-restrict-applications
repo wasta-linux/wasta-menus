@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# Restrict the set of desktop applications visible to the current user
+#
+# Usage: xdg-restrict-applications DIRS
+#
+#    DIRS    A colon-separated list of directories (eg from XDG_DATA_DIRS)
+#
+# Procedure:
+#
+# 1. Make clones of each directory, populated with symlinks to the items in the
+#    original directory, and remove the links to the applications subdirectories.
+#    This leaves just the user's applications directory available
+#    ($XDG_DATA_HOME/applications).
+#
+# 2. Return a new list of directories that contains the cloned directories
+#    instead of the originals.
+#
+# The default value for $XDG_DATA_HOME is $HOME/.local/share
+#
+# Note: if the user's session application (eg gnome-shell) isn't in their
+#       applications directory they won't be able to log in.
+
+clone_directory()
+{
+	local DIR=$1 CLONED=$2
+
+	# Strip trailing /
+	DIR=${DIR%/}
+
+	# Make DIR an absolute path
+	case $DIR in
+		/*) ;;
+		*) DIR=$PWD/$DIR;;
+	esac
+
+	mkdir -p "$CLONED$DIR"
+
+	ln -s "$DIR"/* "$CLONED$DIR"/
+
+	echo "$CLONED$DIR"
+}
+
+RESTRICTED=$HOME/.restricted
+
+rm -rf "$RESTRICTED"
+
+RESTRICTED_DIRS=
+
+for DIR in $(echo "$1" | tr : ' ')
+do
+	CLONE=$(clone_directory "$DIR" "$RESTRICTED")
+
+	rm -f "$CLONE"/applications
+
+	RESTRICTED_DIRS=$RESTRICTED_DIRS:$CLONE
+done
+
+echo "${RESTRICTED_DIRS#:}"
