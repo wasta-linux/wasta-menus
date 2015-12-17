@@ -56,30 +56,9 @@ fi
 # ------------------------------------------------------------------------------
 
 # Load up system applications
-grep -L '^NoDisplay=true' /usr/share/applications/*.desktop | \
-    xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-    xargs grep '^Name=' -m 1 > "$LISTDIR/system-list.txt"
-
-if [ -e /usr/local/share/applications/*.desktop ];
-then
-    grep -L '^NoDisplay=true' /usr/local/share/applications/*.desktop | \
-        xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-        xargs grep '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-fi
-
-if [ -e /usr/share/gnome/applications/*.desktop ];
-then
-    grep -L '^NoDisplay=true' /usr/share/gnome/applications/*.desktop | \
-        xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-        xargs grep '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-fi
-
-if [ -e /usr/share/cinnamon/applications/*.desktop ];
-then
-    grep -L '^NoDisplay=true' /usr/share/cinnamon/applications/*.desktop | \
-        xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-        xargs grep '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-fi
+grep -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
+    xargs -r grep -L '^OnlyShowIn=.*[^GNOME]' |
+    xargs -r grep '^Name=' -m 1 > "$LISTDIR/system-list.txt"
 
 # If no current WASTA_USER_APPS_DIR, Load up default Wasta Menus Applications List
 if ! wasta_apps_dir_exists

@@ -1,10 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
 # Library of functions for wasta-menus
 
 WASTA_DEFAULT_APPS="/etc/wasta-menus-default-apps.txt"
 WASTA_USER_APPS_DIR="$HOME/.local/share/wasta/applications"
 RESTRICT_APPS="$HOME/.local/bin/xdg-restrict-applications"
+
+SYSTEM_APPS_DIRS=(
+    /usr/share/applications
+    /usr/local/share/applications
+    /usr/share/gnome/applications
+    /usr/share/cinnamon/applications)
 
 # Functions to enable and disable wasta menus, based on the presence or absence
 # of the $RESTRICT_APPS utility (which is a symlink to the one in /usr/bin)
