@@ -17,6 +17,11 @@
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
+# Load common functions
+# ------------------------------------------------------------------------------
+. $(dirname $0)/../share/wasta-menus/functions
+
+# ------------------------------------------------------------------------------
 # Ensure script running as regular user
 # ------------------------------------------------------------------------------
 if [ $(id -u) -eq 0 ]
@@ -28,7 +33,6 @@ then
 fi
 
 LISTDIR=$HOME/.cache/wasta-menus
-WASTA_USER_APPS_DIR="$HOME/.local/share/wasta/applications"
 MSG=""
 
 mkdir -p $LISTDIR
@@ -78,47 +82,19 @@ then
 fi
 
 # If no current WASTA_USER_APPS_DIR, Load up default Wasta Menus Applications List
-if ! [ -d "$WASTA_USER_APPS_DIR" ];
+if ! wasta_apps_dir_exists
 then
     MSG+=\
 "No existing Wasta-Menus Applications List found for current user.\n
 <b>Creating default Wasta-Menus Applications List.</b>\n\n"
-    # create symlinks for wasta-menus (symlinks as part of package don't resolve
-    #   correctly as they are turned into relative links.  So, re-do here:
-
-    # First, create directory
-    mkdir -p "$WASTA_USER_APPS_DIR"
-
-    # Problem if can't find default-apps file
-    if [ ! -e /etc/wasta-menus-default-apps.txt ];
+    if ! create_wasta_apps_dir
     then
         MSG+=\
 "<b>PROBLEM FOUND: No default Wasta-Menus Applications List</b>
 Work with and Administrator to solve the problem.\n\n"
     fi
-
-    # read in file
-    #   if trimmed line is empty or starts with #, then ignore and read next
-    #   else, create symlink in /wasta-base-setup/wasta-menus/applications folder.
-
-    while read -r LINE
-    do
-        # Trim leading whitespace
-        LINE="${LINE##*( )}"
-        # trim trailing whitespace
-        LINE="${LINE%%*( )}" 
-
-        # Create symlink IF:
-        #   $LINE (trimmed) is NOT ZERO LENGTH  AND first character IS NOT "#"
-        FIRST_CHAR=$(echo -n "$LINE" | head -c1)
-        if [ -n "$LINE" ] && ! [ "$FIRST_CHAR" == "#" ];
-        then
-            # create symlink in $WASTA_USER_APPS_DIR Dir
-            ln -sf "$LINE" "$WASTA_USER_APPS_DIR/"
-        fi
-    done < /etc/wasta-menus-default-apps.txt
 fi
-    
+
 # Now Load up list of current user's wasta-menus apps
 grep -s -L '^NoDisplay=true' $WASTA_USER_APPS_DIR/*.desktop | \
     xargs -r grep -L '^OnlyShowIn=.*[^GNOME]' | \

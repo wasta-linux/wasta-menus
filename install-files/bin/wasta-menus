@@ -18,6 +18,11 @@
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
+# Load common functions
+# ------------------------------------------------------------------------------
+. $(dirname $0)/../share/wasta-menus/functions
+
+# ------------------------------------------------------------------------------
 # Ensure script running as regular user
 # ------------------------------------------------------------------------------
 if [ $(id -u) -eq 0 ]
@@ -81,24 +86,6 @@ fi
 # ------------------------------------------------------------------------------
 
 MSG=""
-WASTA_USER_APPS_DIR="$HOME/.local/share/wasta/applications"
-RESTRICT_APPS="$HOME/.local/bin/xdg-restrict-applications"
-
-# Functions to enable and disable wasta menus, based on the presence or absence
-# of the $RESTRICT_APPS utility (which is a symlink to the one in /usr/bin)
-wasta_menus_enabled()
-{
-    [ -x "$RESTRICT_APPS" ]
-}
-disable_wasta_menus()
-{
-    rm -f "$RESTRICT_APPS"
-}
-enable_wasta_menus()
-{
-    mkdir -p "$(dirname "$RESTRICT_APPS")"
-    ln -sf "$(which xdg-restrict-applications)" "$RESTRICT_APPS"
-}
 
 case "$PARM" in
     ON)
@@ -118,46 +105,17 @@ case "$PARM" in
         # ----------------------------------------------------------------------
         # Ensure $WASTA_USER_APPS_DIR setup
         # ----------------------------------------------------------------------
-        if ! [ -d "$WASTA_USER_APPS_DIR" ];
+        if ! wasta_apps_dir_exists
         then
             MSG+=\
 "No existing Wasta-Menus Applications List found for current user.\n
 <b>Creating default Wasta-Menus Applications List.</b>\n\n"
-            # create symlinks for wasta-menus (symlinks as part of package don't resolve
-            #   correctly as they are turned into relative links.  So, re-do here:
-
-            # First, create directory
-            mkdir -p "$WASTA_USER_APPS_DIR"
-
-            # default-apps file set using update-alternatives by package
-            # Problem if can't find default-apps file
-            if [ ! -e /etc/wasta-menus-default-apps.txt ];
+            if ! create_wasta_apps_dir
             then
                 MSG+=\
 "<b>PROBLEM FOUND: No default Wasta-Menus Applications List</b>
 Work with and Administrator to solve the problem.\n\n"
             fi
-
-            # read in file
-            #   if trimmed line is empty or starts with #, then ignore and read next
-            #   else, create symlink in user's application directory.
-
-            while read -r LINE
-            do
-                # Trim leading whitespace
-                LINE="${LINE##*( )}"
-                # trim trailing whitespace
-                LINE="${LINE%%*( )}" 
-
-                # Create symlink IF:
-                #   $LINE (trimmed) is NOT ZERO LENGTH  AND first character IS NOT "#"
-                FIRST_CHAR=$(echo -n "$LINE" | head -c1)
-                if [ -n "$LINE" ] && ! [ "$FIRST_CHAR" == "#" ];
-                then
-                    # create symlink in $WASTA_USER_APPS_DIR Dir
-                    ln -sf "$LINE" "$WASTA_USER_APPS_DIR/"
-                fi
-            done < /etc/wasta-menus-default-apps.txt
         else
             MSG+="Using existing Wasta-Menus Applications List for current user.\n\n"
         fi
@@ -198,7 +156,7 @@ the current user's Wasta-Menus settings?</b>" --radiolist \
             disable_wasta_menus
 
             MSG+="<b>REMOVING</b> Wasta-Menus Applications List for current user.\n\n"
-            rm -rf "$WASTA_USER_APPS_DIR"
+            remove_wasta_apps_dir
 
             MSG+="<b>Wasta-Menus successfully REMOVED</b>\n\n"
         else
