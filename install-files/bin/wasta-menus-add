@@ -121,8 +121,8 @@ fi
     
 # Now Load up list of current user's wasta-menus apps
 grep -s -L '^NoDisplay=true' $WASTA_USER_APPS_DIR/*.desktop | \
-    xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-    xargs grep '^Name=' -m 1 > "$LISTDIR/user-list.txt"
+    xargs -r grep -L '^OnlyShowIn=.*[^GNOME]' | \
+    xargs -r grep '^Name=' -m 1 > "$LISTDIR/user-list.txt"
 
 # Remove the system applications that are already in user's wasta-menus apps
 while read -r LINE
