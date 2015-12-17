@@ -11,6 +11,11 @@ then
 	mv "$HOME"/.local/share/applications-wasta "$HOME"/.local/share/wasta/applications
 fi
 
+if [ -e "$HOME"/.local/share/wasta-system/applications ]
+then
+	XDG_DATA_DIRS=$HOME/.local/share/wasta-system:$XDG_DATA_DIRS
+fi
+
 if [ -e "$HOME"/.local/share/wasta/applications ]
 then
 	XDG_DATA_DIRS=$HOME/.local/share/wasta:$XDG_DATA_DIRS

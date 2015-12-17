@@ -4,6 +4,7 @@
 
 WASTA_DEFAULT_APPS="/etc/wasta-menus-default-apps.txt"
 WASTA_USER_APPS_DIR="$HOME/.local/share/wasta/applications"
+WASTA_SYSTEM_APPS_DIR="$HOME/.local/share/wasta-system/applications"
 RESTRICT_APPS="$HOME/.local/bin/xdg-restrict-applications"
 
 SYSTEM_APPS_DIRS=(
@@ -49,6 +50,11 @@ create_wasta_apps_dir()
         # First, create directory
         mkdir -p "$WASTA_USER_APPS_DIR"
 
+        # Link in hidden system apps
+        local SYSTEM_APPS=$(grep -s -l '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop})
+        mkdir -p "$WASTA_SYSTEM_APPS_DIR"
+        ln -s $SYSTEM_APPS "$WASTA_SYSTEM_APPS_DIR"
+
         # Problem if can't find default-apps file
         if [ ! -e $WASTA_DEFAULT_APPS ];
         then
@@ -80,5 +86,5 @@ create_wasta_apps_dir()
 
 remove_wasta_apps_dir()
 {
-    rm -rf "$WASTA_USER_APPS_DIR"
+    rm -rf "$WASTA_USER_APPS_DIR" "$WASTA_SYSTEM_APPS_DIR"
 }
