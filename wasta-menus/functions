@@ -3,7 +3,7 @@
 # Library of functions for wasta-menus
 
 WASTA_DEFAULT_APPS="/etc/wasta-menus-default-apps.txt"
-WASTA_USER_APPS_DIR="$HOME/.local/share/wasta/applications"
+WASTA_USER_APPS_DIR="$HOME/.local/share/wasta-user/applications"
 WASTA_SYSTEM_APPS_DIR="$HOME/.local/share/wasta-system/applications"
 RESTRICT_APPS="$HOME/.local/bin/xdg-restrict-applications"
 

@@ -5,10 +5,10 @@
 # Make wasta applications visible to the user
 
 # Migrate existing directory from old location
-if [ ! -e "$HOME"/.local/share/wasta/applications \
+if [ ! -e "$HOME"/.local/share/wasta-user/applications \
     -a -e "$HOME"/.local/share/applications-wasta ]
 then
-	mv "$HOME"/.local/share/applications-wasta "$HOME"/.local/share/wasta/applications
+	mv "$HOME"/.local/share/applications-wasta "$HOME"/.local/share/wasta-user/applications
 fi
 
 if [ -e "$HOME"/.local/share/wasta-system/applications ]
@@ -16,7 +16,7 @@ then
 	XDG_DATA_DIRS=$HOME/.local/share/wasta-system:$XDG_DATA_DIRS
 fi
 
-if [ -e "$HOME"/.local/share/wasta/applications ]
+if [ -e "$HOME"/.local/share/wasta-user/applications ]
 then
-	XDG_DATA_DIRS=$HOME/.local/share/wasta:$XDG_DATA_DIRS
+	XDG_DATA_DIRS=$HOME/.local/share/wasta-user:$XDG_DATA_DIRS
 fi
