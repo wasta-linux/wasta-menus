@@ -51,6 +51,8 @@ fi
 # Initial Prompt
 # ------------------------------------------------------------------------------
 
+migrate_existing_config
+
 PARM=""
 PARM=$(zenity --list --title "Wasta-Menus" \
     --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \

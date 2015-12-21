@@ -88,3 +88,27 @@ remove_wasta_apps_dir()
 {
     rm -rf "$WASTA_USER_APPS_DIR" "$WASTA_SYSTEM_APPS_DIR"
 }
+
+# Functions to migrate existing configuration from old locations
+
+migrate_existing_config()
+{
+    local OLD_USER_APPS_DIR=$HOME/.local/share/applications-wasta
+
+    if [ -e "$OLD_USER_APPS_DIR" ]
+    then
+        if [ ! -e "$WASTA_USER_APPS_DIR" ]
+        then
+            mv "$OLD_USER_APPS_DIR" "$WASTA_USER_APPS_DIR"
+        else
+            rm -f "$OLD_USER_APPS_DIR"
+        fi
+    fi
+
+    if grep -s -q .local/share/applications-wasta $HOME/.config/menus/{cinnamon,gnome,xfce}-applications.menu
+    then
+        enable_wasta_menus
+    fi
+
+    rm -f $HOME/.config/menus/{cinnamon,gnome,xfce}-applications{,-wasta,-save}.menu
+}

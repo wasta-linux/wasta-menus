@@ -55,6 +55,8 @@ fi
 # Main Processing
 # ------------------------------------------------------------------------------
 
+migrate_existing_config
+
 # Load up system applications
 grep -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
     xargs -r grep -L '^OnlyShowIn=.*[^GNOME]' |
