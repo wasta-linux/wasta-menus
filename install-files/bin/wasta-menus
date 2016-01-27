@@ -53,6 +53,10 @@ fi
 
 migrate_existing_config
 
+RADIO_STATE=$(if wasta_menus_enabled; then echo ON; else echo OFF; fi)
+
+radio() { if [ "$1" = "$RADIO_STATE" ]; then echo TRUE "${@}"; else echo FALSE "${@}"; fi; }
+
 PARM=""
 PARM=$(zenity --list --title "Wasta-Menus" \
     --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
@@ -71,9 +75,9 @@ Use <b>Wasta-Menus Add App</b> to add additional applications to the current
 
 <b>SELECT the Wasta-Menus ACTION you want to perform:</b>"  --radiolist \
     --column "" --column "Action" --column "Description" \
-    FALSE       ON                "'ENABLE' Wasta-Menus"\
-    FALSE       OFF               "'DISABLE' Wasta-Menus"\
-    FALSE       REMOVE            "'REMOVE' current user's Wasta-Menus settings")
+    $(radio ON)      "'ENABLE' Wasta-Menus" \
+    $(radio OFF)     "'DISABLE' Wasta-Menus" \
+    $(radio REMOVE)  "'REMOVE' current user's Wasta-Menus settings")
 
 if [ -z "$PARM" ];
 then
