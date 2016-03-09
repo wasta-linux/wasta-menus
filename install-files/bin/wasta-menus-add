@@ -17,6 +17,11 @@
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
+# Load common functions
+# ------------------------------------------------------------------------------
+. $(dirname $0)/../share/wasta-menus/functions
+
+# ------------------------------------------------------------------------------
 # Ensure script running as regular user
 # ------------------------------------------------------------------------------
 if [ $(id -u) -eq 0 ]
@@ -28,7 +33,6 @@ then
 fi
 
 LISTDIR=$HOME/.cache/wasta-menus
-WASTA_USER_APPS_DIR="$HOME/.local/share/applications-wasta"
 MSG=""
 
 mkdir -p $LISTDIR
@@ -51,85 +55,31 @@ fi
 # Main Processing
 # ------------------------------------------------------------------------------
 
+migrate_existing_config
+
 # Load up system applications
-grep -L '^NoDisplay=true' /usr/share/applications/*.desktop | \
-    xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-    xargs grep '^Name=' -m 1 > "$LISTDIR/system-list.txt"
-
-if [ -e /usr/local/share/applications/*.desktop ];
-then
-    grep -L '^NoDisplay=true' /usr/local/share/applications/*.desktop | \
-        xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-        xargs grep '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-fi
-
-if [ -e /usr/share/gnome/applications/*.desktop ];
-then
-    grep -L '^NoDisplay=true' /usr/share/gnome/applications/*.desktop | \
-        xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-        xargs grep '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-fi
-
-if [ -e /usr/share/cinnamon/applications/*.desktop ];
-then
-    grep -L '^NoDisplay=true' /usr/share/cinnamon/applications/*.desktop | \
-        xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-        xargs grep '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-fi
+grep -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
+    xargs -r grep -L '^OnlyShowIn=.*[^GNOME]' |
+    xargs -r grep -H '^Name=' -m 1 > "$LISTDIR/system-list.txt"
 
 # If no current WASTA_USER_APPS_DIR, Load up default Wasta Menus Applications List
-if ! [ -d "$WASTA_USER_APPS_DIR" ];
+if ! wasta_apps_dir_exists
 then
     MSG+=\
 "No existing Wasta-Menus Applications List found for current user.\n
 <b>Creating default Wasta-Menus Applications List.</b>\n\n"
-    # create symlinks for wasta-menus (symlinks as part of package don't resolve
-    #   correctly as they are turned into relative links.  So, re-do here:
-
-    # First, create directory
-    mkdir -p "$WASTA_USER_APPS_DIR"
-
-    # Problem if can't find default-apps file
-    if [ ! -e /etc/wasta-menus-default-apps.txt ];
+    if ! create_wasta_apps_dir
     then
         MSG+=\
 "<b>PROBLEM FOUND: No default Wasta-Menus Applications List</b>
-Work with and Administrator to solve the problem.\n\n"
+Work with an Administrator to solve the problem.\n\n"
     fi
-
-    # read in file
-    #   if trimmed line is empty or starts with #, then ignore and read next
-    #   else, create symlink in /wasta-base-setup/wasta-menus/applications folder.
-
-    while read -r LINE
-    do
-        # Trim leading whitespace
-        LINE="${LINE##*( )}"
-        # trim trailing whitespace
-        LINE="${LINE%%*( )}" 
-
-        # Create symlink IF:
-        #   $LINE (trimmed) is NOT ZERO LENGTH  AND first character IS NOT "#"
-        FIRST_CHAR=$(echo -n "$LINE" | head -c1)
-        if [ -n "$LINE" ] && ! [ "$FIRST_CHAR" == "#" ];
-        then
-            # create symlink in $WASTA_USER_APPS_DIR Dir
-            ln -sf "$LINE" "$WASTA_USER_APPS_DIR/"
-        fi
-    done < /etc/wasta-menus-default-apps.txt
 fi
-    
+
 # Now Load up list of current user's wasta-menus apps
 grep -s -L '^NoDisplay=true' $WASTA_USER_APPS_DIR/*.desktop | \
-    xargs grep -L '^OnlyShowIn=.*[^GNOME]' | \
-    xargs grep '^Name=' -m 1 > "$LISTDIR/user-list.txt"
-
-# Remove the system applications that are already in user's wasta-menus apps
-while read -r LINE
-do
-    ITEM=${LINE##*/}
-    sed -i "/$ITEM/d" "$LISTDIR/system-list.txt"
-done < "$LISTDIR/user-list.txt"
+    xargs -r grep -L '^OnlyShowIn=.*[^GNOME]' | \
+    xargs -r grep -H '^Name=' -m 1 > "$LISTDIR/user-list.txt"
 
 # Sort List Alphabetically by Display Name
 sort $LISTDIR/system-list.txt -t : -k 2 -o "$LISTDIR/sorted-list.txt"
@@ -139,8 +89,10 @@ unset APP_LIST
 while read -r LINE
 do
 	LOCATION=${LINE%%:*}
-	APP_NAME=${LINE##*=}
-	APP_LIST+=("FALSE")
+	ITEM=${LINE##*/}
+	APP_NAME=${ITEM##*=}
+	ENABLED=$(if grep -q "$ITEM" "$LISTDIR/user-list.txt"; then echo TRUE; else echo FALSE; fi)
+	APP_LIST+=($ENABLED)
 	APP_LIST+=("$APP_NAME")
 	APP_LIST+=("$LOCATION")
 
@@ -154,30 +106,32 @@ SELECTED_APPS=$(zenity --list --title "Wasta-Menus Add App" \
     --checklist --separator=";" --height=500 --print-column=3 \
     --column "" --column "App Name" --column "App Location" "${APP_LIST[@]}")
 
-if [ ! -z "$SELECTED_APPS" ];
+if [ $? -ne 0 ]
 then
-    # Only add trailing ";" if list not empty
-    SELECTED_APPS+=";"
+    MSG+="<b>Cancelled!</b>\n\nNo changes have been made to the current user's Wasta-Menus.\n\n"
 else
-    MSG+=\
-"<b>No Application Selected!</b>\n
-No Additional Applications have been added to the current user's Wasta-Menus.\n\n"
+	# Remove any existing apps
+	rm -f "$WASTA_USER_APPS_DIR"/*
+
+	MSG+="Applications included:\n\n"
+
+	# Create symlinks to the selected programs
+	OLDIFS=$IFS IFS=";"
+	for ADD_APP in $SELECTED_APPS
+	do
+	    # retrieve APP NAME from Sorted List
+	    LIST_LINE=$(grep "$ADD_APP" "$LISTDIR/sorted-list.txt")
+	    ADD_APP_NAME=${LIST_LINE##*=}
+
+	    # symlink system app to user app
+	    ln -s "$ADD_APP" "$WASTA_USER_APPS_DIR/"
+	    MSG+="    $ADD_APP_NAME\n"
+	done
+	IFS=$OLDIFS
+
+	MSG+="\n"
 fi
 
-# Create symlinks to the selected programs
-while [ -n "$SELECTED_APPS" ]
-do
-    ADD_APP=${SELECTED_APPS%%;*}
-
-    # retrieve APP NAME from Sorted List
-    LIST_LINE=$(grep "$ADD_APP" "$LISTDIR/sorted-list.txt")
-    ADD_APP_NAME=${LIST_LINE##*=}
-
-    # symlink system app to user app
-    ln -s "$ADD_APP" "$WASTA_USER_APPS_DIR/"
-    MSG+="Application added: $ADD_APP_NAME\n\n"
-    SELECTED_APPS=${SELECTED_APPS#*;}
-done
 MSG+="<b>Finished Processing</b>"
 
 # ------------------------------------------------------------------------------

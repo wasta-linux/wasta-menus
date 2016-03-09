@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# Library of functions for wasta-menus
+
+WASTA_DEFAULT_APPS="/etc/wasta-menus-default-apps.txt"
+WASTA_USER_APPS_DIR="$HOME/.local/share/wasta-user/applications"
+WASTA_SYSTEM_APPS_DIR="$HOME/.local/share/wasta-system/applications"
+RESTRICT_APPS="$HOME/.local/bin/xdg-restrict-applications"
+
+SYSTEM_APPS_DIRS=(
+    /usr/share/applications
+    /usr/local/share/applications
+    /usr/share/gnome/applications
+    /usr/share/cinnamon/applications)
+
+# Functions to enable and disable wasta menus, based on the presence or absence
+# of the $RESTRICT_APPS utility (which is a symlink to the one in /usr/bin)
+
+wasta_menus_enabled()
+{
+    [ -x "$RESTRICT_APPS" ]
+}
+
+disable_wasta_menus()
+{
+    rm -f "$RESTRICT_APPS"
+}
+
+enable_wasta_menus()
+{
+    mkdir -p "$(dirname "$RESTRICT_APPS")"
+    ln -sf "$(which xdg-restrict-applications)" "$RESTRICT_APPS"
+}
+
+# Functions to manipulate a WASTA_USER_APPS_DIR
+
+wasta_apps_dir_exists()
+{
+    [ -d "$WASTA_USER_APPS_DIR" ]
+}
+
+create_wasta_apps_dir()
+{
+    # If no current WASTA_USER_APPS_DIR, Load up default Wasta Menus Applications List
+    if ! wasta_apps_dir_exists
+    then
+        # create symlinks for wasta-menus (symlinks as part of package don't resolve
+        #   correctly as they are turned into relative links.  So, re-do here:
+
+        # First, create directory
+        mkdir -p "$WASTA_USER_APPS_DIR"
+
+        # Link in hidden system apps
+        local SYSTEM_APPS=$(grep -s -l '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop})
+        mkdir -p "$WASTA_SYSTEM_APPS_DIR"
+        ln -s $SYSTEM_APPS "$WASTA_SYSTEM_APPS_DIR"
+
+        # Problem if can't find default-apps file
+        if [ ! -e $WASTA_DEFAULT_APPS ];
+        then
+            return 1
+        fi
+
+        # read in file
+        #   if trimmed line is empty or starts with #, then ignore and read next
+        #   else, create symlink in /wasta-base-setup/wasta-menus/applications folder.
+
+        while read -r LINE
+        do
+            # Trim leading whitespace
+            LINE="${LINE##*( )}"
+            # trim trailing whitespace
+            LINE="${LINE%%*( )}"
+
+            # Create symlink IF:
+            #   $LINE (trimmed) is NOT ZERO LENGTH  AND first character IS NOT "#"
+            FIRST_CHAR=$(echo -n "$LINE" | head -c1)
+            if [ -n "$LINE" ] && ! [ "$FIRST_CHAR" == "#" ];
+            then
+                # create symlink in $WASTA_USER_APPS_DIR Dir
+                ln -sf "$LINE" "$WASTA_USER_APPS_DIR/"
+            fi
+        done <$WASTA_DEFAULT_APPS
+    fi
+}
+
+remove_wasta_apps_dir()
+{
+    rm -rf "$WASTA_USER_APPS_DIR" "$WASTA_SYSTEM_APPS_DIR"
+}
+
+# Functions to migrate existing configuration from old locations
+
+migrate_existing_config()
+{
+    local OLD_USER_APPS_DIR=$HOME/.local/share/applications-wasta
+
+    if [ -e "$OLD_USER_APPS_DIR" ]
+    then
+        if [ ! -e "$WASTA_USER_APPS_DIR" ]
+        then
+            mv "$OLD_USER_APPS_DIR" "$WASTA_USER_APPS_DIR"
+        else
+            rm -f "$OLD_USER_APPS_DIR"
+        fi
+    fi
+
+    if grep -s -q .local/share/applications-wasta $HOME/.config/menus/{cinnamon,gnome,xfce}-applications.menu
+    then
+        enable_wasta_menus
+    fi
+
+    rm -f $HOME/.config/menus/{cinnamon,gnome,xfce}-applications{,-wasta,-save}.menu
+}

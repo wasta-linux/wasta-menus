@@ -38,6 +38,9 @@
 # ClamTK: Anti-Virus
 /usr/share/applications/clamtk.desktop
 
+# Gnome control center
+/usr/share/applications/gnome-control-center.desktop
+
 # Gnome Search Tool
 /usr/share/applications/gnome-search-tool.desktop
 

@@ -1,3 +1,27 @@
+wasta-menus (1.9.0) xenial; urgency=medium
+
+  * changing version to 1.9.0 to prepare for 2.0 release of this refactored
+    wasta-menus thanks to Neil Mayhew.
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Wed, 09 Mar 2016 10:22:19 +0300
+
+wasta-menus (1.0.1ubuntu1) wily; urgency=medium
+
+  [ Neil Mayhew ]
+  * Add a debian/source/format file
+  * Switch from architecture 'any' to architecture 'all'
+  * Reimplement restricted application visibility for Gnome 3.18
+  * Add Gnome Control Center to the list of default apps
+  * Avoid an error message when setting up the apps dir
+  * Refactor scripts to use common functions
+  * Refactor application-finding logic to use a shared variable
+  * Add a dir for system applications (NoDisplay=true)
+
+  [ Rik Shaw ]
+  * trying out gbp for a temporary build
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Fri, 18 Dec 2015 15:32:50 +0300
+
 wasta-menus (1.0.1) trusty; urgency=medium
 
   * version bump to facilitate launchpad pull and auto building for PPA.

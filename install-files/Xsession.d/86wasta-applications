@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# This file is sourced by Xsession(5), not executed.
+
+# Make wasta applications visible to the user
+
+if [ -e "$HOME"/.local/share/wasta-system/applications ]
+then
+	XDG_DATA_DIRS=$HOME/.local/share/wasta-system:$XDG_DATA_DIRS
+fi
+
+if [ -e "$HOME"/.local/share/wasta-user/applications ]
+then
+	XDG_DATA_DIRS=$HOME/.local/share/wasta-user:$XDG_DATA_DIRS
+fi
