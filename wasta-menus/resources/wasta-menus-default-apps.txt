@@ -26,29 +26,32 @@
 # Cinnamon Settings
 /usr/share/applications/cinnamon-settings.desktop
 
+# ClamTK: Anti-Virus
+/usr/share/applications/clamtk.desktop
+
+# Dictionary App Builder
+/usr/share/applications/dictionary-app-builder.desktop
+
 # FLEx
 /usr/share/applications/fieldworks-flex.desktop
 
 # Firefox
 /usr/share/applications/firefox.desktop
 
-# Calculator
-/usr/share/applications/gcalctool.desktop
+# Gedit Text Editor
+/usr/share/applications/gedit.desktop
 
-# ClamTK: Anti-Virus
-/usr/share/applications/clamtk.desktop
+# Gnome Calculator
+/usr/share/applications/gnome-calculator.desktop
 
-# Gnome control center
+# Gnome Control Center
 /usr/share/applications/gnome-control-center.desktop
 
 # Gnome Search Tool
 /usr/share/applications/gnome-search-tool.desktop
 
-# Gedit Text Editor
-/usr/share/applications/gedit.desktop
-
-# Screenshot Utility
-/usr/share/applications/gnome-screenshot.desktop
+# GoldenDict
+/usr/share/applications/goldendict.desktop
 
 # Klavaro Typing Tutor
 /usr/share/applications/klavaro.desktop
@@ -65,6 +68,12 @@
 # Nemo File Manager
 /usr/share/applications/nemo.desktop
 
+# Screenshot Utility
+/usr/share/applications/org.gnome.Screenshot.desktop
+
+# Scripture App Builder
+/usr/share/applications/scripture-app-builder.desktop
+
 # ParaTExt
 /usr/share/applications/paratext.desktop
 
@@ -80,23 +89,29 @@
 # Thunderbird
 /usr/share/applications/thunderbird.desktop
 
+# Unity Control Center
+/usr/share/applications/unity-control-center.desktop
+
 # VLC Media Player
 /usr/share/applications/vlc.desktop
 
 # Wasta-Backup
 /usr/share/applications/wasta-backup.desktop
 
-# Wasta-Linux Cinnamon Reset
-/usr/share/applications/wasta-cinnamon-reset.desktop
-
 # Wasta-Menus
 /usr/share/applications/wasta-menus.desktop
 
-# Wasta-Menus Add App
-/usr/share/applications/wasta-menus-add.desktop
+# Wasta-Menus Apps
+/usr/share/applications/wasta-menus-apps.desktop
+
+# Wasta-Reset
+/usr/share/applications/wasta-reset.desktop
 
 # Wasta-Resources
 /usr/share/applications/wasta-resources.desktop
 
 # Xiphos
 /usr/share/applications/xiphos.desktop
+
+# Yelp Help
+/usr/share/applications/yelp.desktop

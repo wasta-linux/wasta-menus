@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # ==============================================================================
-# wasta-menus-add-app.sh
+# wasta-menus-apps
 #
-# This script allows a user to ADD Applications to their Wasta-Menus.
+# This script allows a user to adjust their Wasta-Menus applications.
 #
 # MANY THANKS to the Balsa team for the original concept.
 #
@@ -13,6 +13,9 @@
 #   2015-09-27 rik: renaming dialogs to "Wasta-Menus" not "wasta [Menus]"
 #       - Repointing to /etc/wasta-menus-default-apps.txt (now the correct
 #         location since using update-alternatives)
+#   2016-04-29 rik: adjusting system and user lists to not look at NoDisplay
+#       sections of .desktop files.
+#       - Renamed to "wasta-menus-apps"
 #
 # ==============================================================================
 
@@ -41,7 +44,7 @@ mkdir -p $LISTDIR
 # Hack to ensure user knows an admin password: but again changes are made at the
 #   user level, so this is just a hack but no admin password actually needed :)
 # ------------------------------------------------------------------------------
-pkexec echo "starting wasta-menus-add-app"
+pkexec echo "starting wasta-menus-apps"
 RETURN=$?
 if [ $RETURN -ne 0 ];
 then
@@ -59,26 +62,24 @@ migrate_existing_config
 
 # Load up system applications
 grep -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
-    xargs -r grep -L '^OnlyShowIn=.*[^GNOME]' |
     xargs -r grep -H '^Name=' -m 1 > "$LISTDIR/system-list.txt"
 
 # If no current WASTA_USER_APPS_DIR, Load up default Wasta Menus Applications List
 if ! wasta_apps_dir_exists
 then
     MSG+=\
-"No existing Wasta-Menus Applications List found for current user.\n
-<b>Creating default Wasta-Menus Applications List.</b>\n\n"
+"No existing Wasta-Menus Apps list found for current user.\n
+<b>Creating default Wasta-Menus Apps list.</b>\n\n"
     if ! create_wasta_apps_dir
     then
         MSG+=\
-"<b>PROBLEM FOUND: No default Wasta-Menus Applications List</b>
+"<b>PROBLEM FOUND: No default Wasta-Menus Apps list</b>
 Work with an Administrator to solve the problem.\n\n"
     fi
 fi
 
 # Now Load up list of current user's wasta-menus apps
 grep -s -L '^NoDisplay=true' $WASTA_USER_APPS_DIR/*.desktop | \
-    xargs -r grep -L '^OnlyShowIn=.*[^GNOME]' | \
     xargs -r grep -H '^Name=' -m 1 > "$LISTDIR/user-list.txt"
 
 # Sort List Alphabetically by Display Name
@@ -88,21 +89,23 @@ sort $LISTDIR/system-list.txt -t : -k 2 -o "$LISTDIR/sorted-list.txt"
 unset APP_LIST
 while read -r LINE
 do
-	LOCATION=${LINE%%:*}
-	ITEM=${LINE##*/}
-	APP_NAME=${ITEM##*=}
-	ENABLED=$(if grep -q "$ITEM" "$LISTDIR/user-list.txt"; then echo TRUE; else echo FALSE; fi)
-	APP_LIST+=($ENABLED)
-	APP_LIST+=("$APP_NAME")
-	APP_LIST+=("$LOCATION")
+    LOCATION=${LINE%%:*}
+    ITEM=${LINE##*/}
+    APP_NAME=${ITEM##*=}
+    # rik: adding -F to grep so that square brackets treated as literal
+    # characters, such as in 'wasta [Backup]', else selection will fail
+    ENABLED=$(if grep -q -F "$ITEM" "$LISTDIR/user-list.txt"; then echo TRUE; else echo FALSE; fi)
+    APP_LIST+=($ENABLED)
+    APP_LIST+=("$APP_NAME")
+    APP_LIST+=("$LOCATION")
 
 done < "$LISTDIR/sorted-list.txt"
 
 # Display the dialog and store the users selections in a string
 #   with a semicolon delimiter between each selection
-SELECTED_APPS=$(zenity --list --title "Wasta-Menus Add App" \
+SELECTED_APPS=$(zenity --list --title "Wasta-Menus Apps" \
     --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
-    --text "Select the Applications(s) to add to Wasta-Menus:" \
+    --text "<b>Select the Wasta-Menus Apps for the current user:</b>" \
     --checklist --separator=";" --height=500 --print-column=3 \
     --column "" --column "App Name" --column "App Location" "${APP_LIST[@]}")
 
@@ -110,35 +113,35 @@ if [ $? -ne 0 ]
 then
     MSG+="<b>Cancelled!</b>\n\nNo changes have been made to the current user's Wasta-Menus.\n\n"
 else
-	# Remove any existing apps
-	rm -f "$WASTA_USER_APPS_DIR"/*
+    # Remove any existing apps
+    rm -f "$WASTA_USER_APPS_DIR"/*
 
-	MSG+="Applications included:\n\n"
+    MSG+="<b>Wasta-Menus Apps list for the current user:</b>\n\n"
 
-	# Create symlinks to the selected programs
-	OLDIFS=$IFS IFS=";"
-	for ADD_APP in $SELECTED_APPS
-	do
-	    # retrieve APP NAME from Sorted List
-	    LIST_LINE=$(grep "$ADD_APP" "$LISTDIR/sorted-list.txt")
-	    ADD_APP_NAME=${LIST_LINE##*=}
+    # Create symlinks to the selected programs
+    OLDIFS=$IFS IFS=";"
+    for ADD_APP in $SELECTED_APPS
+    do
+        # retrieve APP NAME from Sorted List
+        LIST_LINE=$(grep "$ADD_APP" "$LISTDIR/sorted-list.txt")
+        ADD_APP_NAME=${LIST_LINE##*=}
 
-	    # symlink system app to user app
-	    ln -s "$ADD_APP" "$WASTA_USER_APPS_DIR/"
-	    MSG+="    $ADD_APP_NAME\n"
-	done
-	IFS=$OLDIFS
+        # symlink system app to user app
+        ln -s "$ADD_APP" "$WASTA_USER_APPS_DIR/"
+        MSG+="    $ADD_APP_NAME\n"
+    done
+    IFS=$OLDIFS
 
-	MSG+="\n"
+    MSG+="\n"
 fi
 
-MSG+="<b>Finished Processing</b>"
+MSG+="<b>Finished processing</b>"
 
 # ------------------------------------------------------------------------------
 # Finished
 # ------------------------------------------------------------------------------
 
-zenity --info --no-wrap --title "Wasta-Menus Add App" --text "$MSG" \
+zenity --info --no-wrap --title "Wasta-Menus Apps" --text "$MSG" \
     --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png
 
 exit 0
