@@ -13,7 +13,7 @@
 #   2014-06-09 rik: adding pkexec hack to prompt for admin password.  Admin
 #       ID not needed for script changes, but don't want limited users running.
 #   2015-09-27 rik: correcting gnome menu name to gnome-applications.menu for
-#       compatibility with Ubuntu Trust (+)
+#       compatibility with Ubuntu Trusty (+)
 #
 # ==============================================================================
 
@@ -70,7 +70,7 @@ Additionally, a user's Wasta-Menus can be <b>REMOVED</b> to completely remove
 If there is any problem with a user's Wasta-Menus and they need <b>RESET</b>,
     first <b>REMOVE</b> them and then <b>ENABLE</b> them again.
 
-Use <b>Wasta-Menus Add App</b> to add additional applications to the current
+Use <b>Wasta-Menus Apps</b> to Add Apps to or Remove Apps from the current
     user's Wasta-Menus.
 
 <b>SELECT the Wasta-Menus ACTION you want to perform:</b>"  --radiolist \
@@ -114,16 +114,16 @@ case "$PARM" in
         if ! wasta_apps_dir_exists
         then
             MSG+=\
-"No existing Wasta-Menus Applications List found for current user.\n
-<b>Creating default Wasta-Menus Applications List.</b>\n\n"
+"No existing Wasta-Menus Apps list found for current user.\n
+<b>Creating default Wasta-Menus Apps list.</b>\n\n"
             if ! create_wasta_apps_dir
             then
                 MSG+=\
-"<b>PROBLEM FOUND: No default Wasta-Menus Applications List</b>
+"<b>PROBLEM FOUND: No default Wasta-Menus Apps list</b>
 Work with and Administrator to solve the problem.\n\n"
             fi
         else
-            MSG+="Using existing Wasta-Menus Applications List for current user.\n\n"
+            MSG+="Using existing Wasta-Menus Apps list for current user.\n\n"
         fi
     ;;
 
@@ -161,7 +161,7 @@ the current user's Wasta-Menus settings?</b>" --radiolist \
             MSG+="<b>DISABLING</b> Wasta-Menus for current user...\n\n"
             disable_wasta_menus
 
-            MSG+="<b>REMOVING</b> Wasta-Menus Applications List for current user.\n\n"
+            MSG+="<b>REMOVING</b> Wasta-Menus Apps list for current user.\n\n"
             remove_wasta_apps_dir
 
             MSG+="<b>Wasta-Menus successfully REMOVED</b>\n\n"

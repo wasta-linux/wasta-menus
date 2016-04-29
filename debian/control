@@ -4,12 +4,12 @@ Priority: extra
 Maintainer: Rik Shaw <rikshaw76@gmail.com>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.5
-Homepage: https://sites.google.com/site/wastalinux/
+Homepage: https://github.com/wasta-linux/wasta-menus
 
 Package: wasta-menus
 Architecture: all
 Depends: zenity, ${shlibs:Depends}, ${misc:Depends}
 Description: Application Menu Limiting System
  Included apps:
-  * wasta-menus: enable, disable, or reset wasta-menus
-  * wasta-menus-add: add an application to wasta-menus
+  * wasta-menus: Enable, Disable, or Reset your Wasta-Menus
+  * wasta-menus-apps: Add Apps to or Remove Apps from your Wasta-Menus

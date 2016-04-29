@@ -1,0 +1,8 @@
+
+[Desktop Entry]
+Name=wasta [Menus] Apps
+Comment=Add Apps to or Remove Apps from your Wasta-Menus
+Exec=wasta-menus-apps
+Type=Application
+Icon=wasta-menus
+Categories=Application;System;
