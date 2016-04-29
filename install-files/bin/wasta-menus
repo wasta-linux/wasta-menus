@@ -175,7 +175,8 @@ the current user's Wasta-Menus settings?</b>" --radiolist \
     ;;
 esac
 
-MSG+="<b>Finished Processing</b>"
+MSG+="<b>Finished Processing</b>\n
+You may need to logout/login to see the changes."
 
 # ------------------------------------------------------------------------------
 # Finished
