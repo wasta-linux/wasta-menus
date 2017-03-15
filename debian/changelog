@@ -1,3 +1,15 @@
+wasta-menus (1.9.3) xenial; urgency=medium
+
+  * move user's local applications to applications-save when wasta-menus
+    activated.  This ensures a user's wasta-menus comes only from the
+    defined wasta-menus lists.
+  * wasta-menus-apps: implement ability to add local apps or apps from the
+    applications-save location
+  * add defaults.list to wasta-system folder so default launchers defined
+  * add evince to wasta-menus-default-apps list.
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Wed, 15 Mar 2017 14:16:22 +0300
+
 wasta-menus (1.9.2) xenial; urgency=medium
 
   * wasta-menus: updating "finished processing" message to indicate user may
