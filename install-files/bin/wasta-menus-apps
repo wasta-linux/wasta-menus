@@ -16,6 +16,7 @@
 #   2016-04-29 rik: adjusting system and user lists to not look at NoDisplay
 #       sections of .desktop files.
 #       - Renamed to "wasta-menus-apps"
+#   2017-03-15 rik: add ability to add apps from local or local save dirs
 #
 # ==============================================================================
 
@@ -60,9 +61,27 @@ fi
 
 migrate_existing_config
 
-# Load up system applications
+# REMOVE old system-list.txt
+rm -f "$LISTDIR/system-list.txt"
+
+# FIRST, add in local user items (could have space from wine apps)
+#find "$USER_APPS_DIR" -iname *.desktop -exec echo -n '"{}" ' \; | grep -v -s '^NoDisplay=true' |
+#    xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+grep -r -s -L '^NoDisplay=true' "$USER_APPS_DIR" |
+    xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+
+# SECOND, add in local user save items if exists (could have space from wine apps)
+if [ -e "$USER_APPS_DIR_SAVE" ];
+then
+   # find "$USER_APPS_DIR_SAVE" -iname *.desktop -exec echo -n '"{}" ' \; | grep -v -s '^NoDisplay=true' |
+   #     xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+    grep -r -s -L '^NoDisplay=true' "$USER_APPS_DIR" |
+        xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+fi
+
+# LAST, Load up system applications
 grep -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
-    xargs -r grep -H '^Name=' -m 1 > "$LISTDIR/system-list.txt"
+    xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
 
 # If no current WASTA_USER_APPS_DIR, Load up default Wasta Menus Applications List
 if ! wasta_apps_dir_exists
@@ -79,11 +98,11 @@ Work with an Administrator to solve the problem.\n\n"
 fi
 
 # Now Load up list of current user's wasta-menus apps
-grep -s -L '^NoDisplay=true' $WASTA_USER_APPS_DIR/*.desktop | \
+find $WASTA_USER_APPS_DIR -iname *.desktop -exec echo -n '"{}" ' \; | grep -v -s '^NoDisplay=true' | \
     xargs -r grep -H '^Name=' -m 1 > "$LISTDIR/user-list.txt"
 
-# Sort List Alphabetically by Display Name
-sort $LISTDIR/system-list.txt -t : -k 2 -o "$LISTDIR/sorted-list.txt"
+# Sort List Alphabetically by Display Name (and remove dupes)
+sort $LISTDIR/system-list.txt -u -t: -k2 -o "$LISTDIR/sorted-list.txt"
 
 # Build the array to displayed in the dialog box
 unset APP_LIST
@@ -119,11 +138,32 @@ else
     MSG+="<b>Wasta-Menus Apps list for the current user:</b>\n\n"
 
     # Create symlinks to the selected programs
-    OLDIFS=$IFS IFS=";"
-    for ADD_APP in $SELECTED_APPS
+    OLDIFS=$IFS
+    IFS=";"
+    for ADD_APP in $SELECTED_APPS;
     do
         # retrieve APP NAME from Sorted List
         LIST_LINE=$(grep "$ADD_APP" "$LISTDIR/sorted-list.txt")
+
+        # if LIST_LINE is in USER_APPS_DIR_SAVE then need to move .desktop file
+        # to USER_APPS_DIR and re-point LIST_LINE
+        # MSG+="list line: $LIST_LINE and user apps dir save: $USER_APPS_DIR_SAVE"
+        if [[ $ADD_APP == *"$USER_APPS_DIR_SAVE"* ]];
+        then
+            # move but need to get rid of prefix path
+            # get app path
+            MSG+=" YO INSIDE\n"
+            MSG+=" LIST_LINE: $LIST_LINE\n"
+            MSG+=" ADD_APP: $ADD_APP\n"
+            ADD_APP_TRIM=${ADD_APP/$USER_APPS_DIR_SAVE/}
+            ADD_APP_TRIM=${ADD_APP_TRIM/\//}
+            MSG+="ADD_APP_TRIM: $ADD_APP_TRIM\n"
+            move_save_to_local "$ADD_APP_TRIM"
+            MSG+="moved save to local, now changing $ADD_APP\n"
+            ADD_APP=${ADD_APP/$USER_APPS_DIR_SAVE/$USER_APPS_DIR}
+            MSG+="new add_APP: $ADD_APP\n"
+        fi
+        #MSG+="Outside going to add $LIST_LINE\n"
         ADD_APP_NAME=${LIST_LINE##*=}
 
         # symlink system app to user app
@@ -131,6 +171,9 @@ else
         MSG+="    $ADD_APP_NAME\n"
     done
     IFS=$OLDIFS
+
+    # IF any local apps remain not in the user's wasta-menus, move them to save
+    move_local_to_save
 
     MSG+="\n"
 fi

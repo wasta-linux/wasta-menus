@@ -32,6 +32,9 @@
 # Dictionary App Builder
 /usr/share/applications/dictionary-app-builder.desktop
 
+# Evince PDF Reader
+/user/share/applications/evince.desktop
+
 # FLEx
 /usr/share/applications/fieldworks-flex.desktop
 

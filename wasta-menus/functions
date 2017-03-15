@@ -5,7 +5,12 @@
 WASTA_DEFAULT_APPS="/etc/wasta-menus-default-apps.txt"
 WASTA_USER_APPS_DIR="$HOME/.local/share/wasta-user/applications"
 WASTA_SYSTEM_APPS_DIR="$HOME/.local/share/wasta-system/applications"
+USER_APPS_DIR="$HOME/.local/share/applications"
+USER_APPS_DIR_SAVE="$HOME/.local/share/applications-save"
 RESTRICT_APPS="$HOME/.local/bin/xdg-restrict-applications"
+
+LISTDIR=$HOME/.cache/wasta-menus
+mkdir -p "$LISTDIR"
 
 SYSTEM_APPS_DIRS=(
     /usr/share/applications
@@ -23,13 +28,64 @@ wasta_menus_enabled()
 
 disable_wasta_menus()
 {
+    # replace user's saved local application launchers (if exists)
+    if [ -e "$USER_APPS_DIR_SAVE" ];
+    then
+        find "$USER_APPS_DIR_SAVE" -type f | \
+            sed "s@$USER_APPS_DIR_SAVE/@@" > $LISTDIR/user-app-list-save.txt
+        while read -r "LINE" <&3;
+        do
+            move_save_to_local "$LINE"
+        done 3< "$LISTDIR/user-app-list-save.txt"
+        rm -rf "$USER_APPS_DIR_SAVE"
+    fi
+
+    # disable wasta-menus
     rm -f "$RESTRICT_APPS"
+}
+
+move_save_to_local()
+{
+    # move from users' saved local apps to main local apps location
+    LOCAL_APP_DIR="$(dirname "$USER_APPS_DIR/$1")"
+    mkdir -p "$LOCAL_APP_DIR"
+    # don't overwrite (in case user updated app while wasta-menus was active)
+    mv -n "$USER_APPS_DIR_SAVE/$1" "$LOCAL_APP_DIR"
+}
+
+move_local_to_save()
+{
+    # remove user's local application launchers not part of wasta-menus
+    # wine apps will be in subfolders of user's applications directory
+    mkdir -p "$USER_APPS_DIR"
+    find "$USER_APPS_DIR" -iname *.desktop | sed "s@$USER_APPS_DIR/@@" > $LISTDIR/user-app-list.txt
+    while read -r "LINE" <&3;
+    do
+        LOCAL_APP_DESKTOP="${LINE##*/}"
+        LOCAL_APP_DIR="$(dirname "$USER_APPS_DIR_SAVE/$LINE")"
+        # if .desktop file not in wasta-user or wasta-system lists, then remove
+        # from user's applications folder
+        if [ ! -e "$WASTA_USER_APPS_DIR/$LOCAL_APP_DESKTOP" ] && \
+           [ ! -e "$WASTA_SYSTEM_APPS_DIR/$LOCAL_APP_DESKTOP" ];
+        then
+            mkdir -p "$LOCAL_APP_DIR"
+            mv "$USER_APPS_DIR/$LINE" "$LOCAL_APP_DIR"
+        fi
+    done 3< "$LISTDIR/user-app-list.txt"
 }
 
 enable_wasta_menus()
 {
+    # IF any local apps remain not in the user's wasta-menus, move them to save
+    move_local_to_save
+
+    # enable wasta-menus
     mkdir -p "$(dirname "$RESTRICT_APPS")"
     ln -sf "$(which xdg-restrict-applications)" "$RESTRICT_APPS"
+
+    # make sure user still has a defaults.list
+    mkdir -p "$WASTA_SYSTEM_APPS_DIR"
+    ln -sf /usr/share/applications/defaults.list "$WASTA_SYSTEM_APPS_DIR"
 }
 
 # Functions to manipulate a WASTA_USER_APPS_DIR
