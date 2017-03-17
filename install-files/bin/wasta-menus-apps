@@ -17,6 +17,9 @@
 #       sections of .desktop files.
 #       - Renamed to "wasta-menus-apps"
 #   2017-03-15 rik: add ability to add apps from local or local save dirs
+#   2017-03-17 rik: updating user-list.txt selection to *not* take away apps
+#       with "NoDisplay=true".  Lots of other cleanup on local and local save
+#       directory logic :-)
 #
 # ==============================================================================
 
@@ -67,21 +70,25 @@ rm -f "$LISTDIR/system-list.txt"
 # FIRST, add in local user items (could have space from wine apps)
 #find "$USER_APPS_DIR" -iname *.desktop -exec echo -n '"{}" ' \; | grep -v -s '^NoDisplay=true' |
 #    xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-grep -r -s -L '^NoDisplay=true' "$USER_APPS_DIR" |
-    xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+grep --null -r -s -L '^NoDisplay=true' "$USER_APPS_DIR" |
+    xargs -0 -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
 
 # SECOND, add in local user save items if exists (could have space from wine apps)
 if [ -e "$USER_APPS_DIR_SAVE" ];
 then
    # find "$USER_APPS_DIR_SAVE" -iname *.desktop -exec echo -n '"{}" ' \; | grep -v -s '^NoDisplay=true' |
    #     xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-    grep -r -s -L '^NoDisplay=true' "$USER_APPS_DIR" |
-        xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+    grep --null -r -s -L '^NoDisplay=true' "$USER_APPS_DIR_SAVE" |
+        xargs -0 -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
 fi
 
 # LAST, Load up system applications
-grep -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
-    xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+grep --null -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
+    xargs -0 -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+
+# Sort List Alphabetically (and remove dupes) - this would remove system
+#   apps if they were overridden by local user items BUT it isn't working because if 2 apps have same name like Appearance it just takes the first one.  not good for multi-desktops.
+# sort $LISTDIR/system-list.txt -t: -k2 -o "$LISTDIR/sorted-list-temp.txt"
 
 # If no current WASTA_USER_APPS_DIR, Load up default Wasta Menus Applications List
 if ! wasta_apps_dir_exists
@@ -97,12 +104,38 @@ Work with an Administrator to solve the problem.\n\n"
     fi
 fi
 
-# Now Load up list of current user's wasta-menus apps
-find $WASTA_USER_APPS_DIR -iname *.desktop -exec echo -n '"{}" ' \; | grep -v -s '^NoDisplay=true' | \
-    xargs -r grep -H '^Name=' -m 1 > "$LISTDIR/user-list.txt"
+# *add* in wasta user "NoDisplay=true" items (so would include items like
+#   Nautilus that wasta-login has hidden for the current desktop)
+find "$WASTA_USER_APPS_DIR" -iname *.desktop -type l -printf "%l\n" | \
+    xargs grep -i -s -l "^NoDisplay=true" |
+    xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
 
-# Sort List Alphabetically by Display Name (and remove dupes)
-sort $LISTDIR/system-list.txt -u -t: -k2 -o "$LISTDIR/sorted-list.txt"
+# remove dupes based on *desktop name* (local ones will remain since at top of file)
+sed -e 's@.*/@@' -e 's@:.*@@' "$LISTDIR/system-list.txt" | 
+    sort -u > "$LISTDIR/system-list-desktops.txt"
+
+rm -f "$LISTDIR/system-list-dedup.txt"
+OLDIFS=$IFS
+IFS=$'\n'
+for LINE in $(cat "$LISTDIR/system-list-desktops.txt");
+do
+    grep -m 1 "$LINE" "$LISTDIR/system-list.txt" >> "$LISTDIR/system-list-dedup.txt"
+done
+IFS=$OLDIFS
+
+# Sort List Alphabetically by Display Name
+sort "$LISTDIR/system-list-dedup.txt" -t: -k2 -o "$LISTDIR/sorted-list.txt"
+
+# Now Load up list of current user's wasta-menus apps
+# REMOVING filter that took out ones with "NoDisplay=true": we want to list
+#   apps that have NoDisplay=true like Nautilus so not lost
+#   when in desktops that don't display it (through wasta-login): basically
+#   if it is already in wasta-menus don't let this list remove it.  user can
+#   later manually remove it from the selection list box.
+# NOTE: can't include wildcard inside quotes or won't expand
+
+grep --null -r -s -l "Name=" "$WASTA_USER_APPS_DIR/"*.desktop | \
+    xargs -0 -r grep -H '^Name=' -m 1 > "$LISTDIR/user-list.txt"
 
 # Build the array to displayed in the dialog box
 unset APP_LIST
@@ -135,7 +168,7 @@ else
     # Remove any existing apps
     rm -f "$WASTA_USER_APPS_DIR"/*
 
-    MSG+="<b>Wasta-Menus Apps list for the current user:</b>\n\n"
+    MSG+="<b>Wasta-Menus Apps</b> have been <b>updated</b>\nfor the current user.\n\n"
 
     # Create symlinks to the selected programs
     OLDIFS=$IFS
@@ -150,41 +183,41 @@ else
         # MSG+="list line: $LIST_LINE and user apps dir save: $USER_APPS_DIR_SAVE"
         if [[ $ADD_APP == *"$USER_APPS_DIR_SAVE"* ]];
         then
-            # move but need to get rid of prefix path
-            # get app path
-            MSG+=" YO INSIDE\n"
-            MSG+=" LIST_LINE: $LIST_LINE\n"
-            MSG+=" ADD_APP: $ADD_APP\n"
+            #remove save reference
             ADD_APP_TRIM=${ADD_APP/$USER_APPS_DIR_SAVE/}
+
+            #remove any slashes
             ADD_APP_TRIM=${ADD_APP_TRIM/\//}
-            MSG+="ADD_APP_TRIM: $ADD_APP_TRIM\n"
+
+            #perform the move from save to local
             move_save_to_local "$ADD_APP_TRIM"
-            MSG+="moved save to local, now changing $ADD_APP\n"
+
+            #replace save directory with user local app directory
             ADD_APP=${ADD_APP/$USER_APPS_DIR_SAVE/$USER_APPS_DIR}
-            MSG+="new add_APP: $ADD_APP\n"
         fi
         #MSG+="Outside going to add $LIST_LINE\n"
         ADD_APP_NAME=${LIST_LINE##*=}
 
         # symlink system app to user app
         ln -s "$ADD_APP" "$WASTA_USER_APPS_DIR/"
-        MSG+="    $ADD_APP_NAME\n"
+        # MSG+="    $ADD_APP_NAME\n"
     done
     IFS=$OLDIFS
 
-    # IF any local apps remain not in the user's wasta-menus, move them to save
-    move_local_to_save
+    # IF wasta-menus active AND any local apps remain not in the user's wasta-menus, move them to save
+    if [ wasta_menus_enabled ]
+    then
+        move_local_to_save
+    fi
 
-    MSG+="\n"
 fi
-
-MSG+="<b>Finished processing</b>"
-
 # ------------------------------------------------------------------------------
 # Finished
 # ------------------------------------------------------------------------------
 
-zenity --info --no-wrap --title "Wasta-Menus Apps" --text "$MSG" \
+MSG+="<b>You may not see the changes until\nthe next login.</b>"
+
+zenity --info --no-wrap --title "Wasta-Menus Apps" --text="$MSG" \
     --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png
 
 exit 0

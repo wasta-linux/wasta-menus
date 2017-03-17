@@ -1,3 +1,12 @@
+wasta-menus (1.9.4) xenial; urgency=medium
+
+  * wasta-menus-apps: updating user-list.txt selection to *not* take away
+    apps with "NoDisplay=true" (so Nautilus won't be removed when in
+    Cinnamon, for example)
+  * wasta-menus-apps: cleanup of sed and grep logic
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Fri, 17 Mar 2017 14:48:37 +0300
+
 wasta-menus (1.9.3) xenial; urgency=medium
 
   * move user's local applications to applications-save when wasta-menus
