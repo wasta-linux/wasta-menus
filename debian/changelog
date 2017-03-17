@@ -1,3 +1,11 @@
+wasta-menus (1.9.5) xenial; urgency=medium
+
+  * wasta-menus-apps: wrap find -iname in quotes ("*.desktop") Uncertain as to
+    why this didn't misbehave on one test machine bud did on another
+  * function: wrap find -iname in quotes
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Fri, 17 Mar 2017 16:51:09 +0300
+
 wasta-menus (1.9.4) xenial; urgency=medium
 
   * wasta-menus-apps: updating user-list.txt selection to *not* take away
