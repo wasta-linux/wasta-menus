@@ -70,21 +70,21 @@ rm -f "$LISTDIR/system-list.txt"
 # FIRST, add in local user items (could have space from wine apps)
 #find "$USER_APPS_DIR" -iname *.desktop -exec echo -n '"{}" ' \; | grep -v -s '^NoDisplay=true' |
 #    xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-grep --null -r -s -L '^NoDisplay=true' "$USER_APPS_DIR" |
-    xargs -0 -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+grep --null -i -r -s -L '^NoDisplay=true' "$USER_APPS_DIR" |
+    xargs -0 -r grep -i -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
 
 # SECOND, add in local user save items if exists (could have space from wine apps)
 if [ -e "$USER_APPS_DIR_SAVE" ];
 then
    # find "$USER_APPS_DIR_SAVE" -iname *.desktop -exec echo -n '"{}" ' \; | grep -v -s '^NoDisplay=true' |
    #     xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
-    grep --null -r -s -L '^NoDisplay=true' "$USER_APPS_DIR_SAVE" |
-        xargs -0 -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+    grep --null -i -r -s -L '^NoDisplay=true' "$USER_APPS_DIR_SAVE" |
+        xargs -0 -r grep -i -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
 fi
 
 # LAST, Load up system applications
-grep --null -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
-    xargs -0 -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+grep --null -i -r -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
+    xargs -0 -r grep -i -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
 
 # Sort List Alphabetically (and remove dupes) - this would remove system
 #   apps if they were overridden by local user items BUT it isn't working because if 2 apps have same name like Appearance it just takes the first one.  not good for multi-desktops.
@@ -106,9 +106,9 @@ fi
 
 # *add* in wasta user "NoDisplay=true" items (so would include items like
 #   Nautilus that wasta-login has hidden for the current desktop)
-find "$WASTA_USER_APPS_DIR" -iname *.desktop -type l -printf "%l\n" | \
+find "$WASTA_USER_APPS_DIR" -iname "*.desktop" -type l -printf "%l\n" | \
     xargs grep -i -s -l "^NoDisplay=true" |
-    xargs -r grep -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+    xargs -r grep -i -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
 
 # remove dupes based on *desktop name* (local ones will remain since at top of file)
 sed -e 's@.*/@@' -e 's@:.*@@' "$LISTDIR/system-list.txt" | 
@@ -134,8 +134,8 @@ sort "$LISTDIR/system-list-dedup.txt" -t: -k2 -o "$LISTDIR/sorted-list.txt"
 #   later manually remove it from the selection list box.
 # NOTE: can't include wildcard inside quotes or won't expand
 
-grep --null -r -s -l "Name=" "$WASTA_USER_APPS_DIR/"*.desktop | \
-    xargs -0 -r grep -H '^Name=' -m 1 > "$LISTDIR/user-list.txt"
+grep --null -i -r -s -l "Name=" "$WASTA_USER_APPS_DIR/"*.desktop | \
+    xargs -0 -r grep -i -H '^Name=' -m 1 > "$LISTDIR/user-list.txt"
 
 # Build the array to displayed in the dialog box
 unset APP_LIST
@@ -205,7 +205,7 @@ else
     IFS=$OLDIFS
 
     # IF wasta-menus active AND any local apps remain not in the user's wasta-menus, move them to save
-    if [ wasta_menus_enabled ]
+    if [ -e "$RESTRICT_APPS" ]
     then
         move_local_to_save
     fi

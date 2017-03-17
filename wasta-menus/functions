@@ -58,7 +58,8 @@ move_local_to_save()
     # remove user's local application launchers not part of wasta-menus
     # wine apps will be in subfolders of user's applications directory
     mkdir -p "$USER_APPS_DIR"
-    find "$USER_APPS_DIR" -iname *.desktop | sed "s@$USER_APPS_DIR/@@" > $LISTDIR/user-app-list.txt
+    find "$USER_APPS_DIR" -iname "*.desktop" > "$LISTDIR/user-app-list.txt"
+    sed -i -e "s@$USER_APPS_DIR/@@" "$LISTDIR/user-app-list.txt"
     while read -r "LINE" <&3;
     do
         LOCAL_APP_DESKTOP="${LINE##*/}"
@@ -107,7 +108,7 @@ create_wasta_apps_dir()
         mkdir -p "$WASTA_USER_APPS_DIR"
 
         # Link in hidden system apps
-        local SYSTEM_APPS=$(grep -s -l '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop})
+        local SYSTEM_APPS=$(grep -i -s -l '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop})
         mkdir -p "$WASTA_SYSTEM_APPS_DIR"
         ln -s $SYSTEM_APPS "$WASTA_SYSTEM_APPS_DIR"
 
@@ -136,7 +137,7 @@ create_wasta_apps_dir()
                 # create symlink in $WASTA_USER_APPS_DIR Dir
                 ln -sf "$LINE" "$WASTA_USER_APPS_DIR/"
             fi
-        done <$WASTA_DEFAULT_APPS
+        done < "$WASTA_DEFAULT_APPS"
     fi
 }
 
