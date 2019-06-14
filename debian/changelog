@@ -1,3 +1,9 @@
+wasta-menus (1.9.6) bionic; urgency=medium
+
+  * adding flatpak and snap app directory compatibility
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Fri, 14 Jun 2019 11:49:17 +0300
+
 wasta-menus (1.9.5) xenial; urgency=medium
 
   * wasta-menus-apps: wrap find -iname in quotes ("*.desktop") Uncertain as to

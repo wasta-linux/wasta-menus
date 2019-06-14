@@ -7,6 +7,7 @@ WASTA_USER_APPS_DIR="$HOME/.local/share/wasta-user/applications"
 WASTA_SYSTEM_APPS_DIR="$HOME/.local/share/wasta-system/applications"
 USER_APPS_DIR="$HOME/.local/share/applications"
 USER_APPS_DIR_SAVE="$HOME/.local/share/applications-save"
+USER_FLATPAK_APPS_DIR="$HOME/.local/share/flatpak/exports/share/applications"
 RESTRICT_APPS="$HOME/.local/bin/xdg-restrict-applications"
 
 LISTDIR=$HOME/.cache/wasta-menus

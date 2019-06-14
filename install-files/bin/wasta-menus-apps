@@ -82,6 +82,13 @@ then
         xargs -0 -r grep -i -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
 fi
 
+# THIRD, add in local user flatpak items if exists (could have space from wine apps)
+if [ -e "$USER_FLATPAK_APPS_DIR" ];
+then
+    grep --null -i -r -s -L '^NoDisplay=true' "$USER_FLATPAK_APPS_DIR" |
+        xargs -0 -r grep -i -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"
+fi
+
 # LAST, Load up system applications
 grep --null -i -r -s -L '^NoDisplay=true' ${SYSTEM_APPS_DIRS[@]/%//*.desktop} |
     xargs -0 -r grep -i -H '^Name=' -m 1 >> "$LISTDIR/system-list.txt"

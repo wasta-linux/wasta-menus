@@ -1,6 +1,6 @@
 Source: wasta-menus
 Section: utils
-Priority: extra
+Priority: optional
 Maintainer: Rik Shaw <rikshaw76@gmail.com>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.5
