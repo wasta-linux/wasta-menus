@@ -1,3 +1,9 @@
+wasta-menus (2.0.0) bionic; urgency=medium
+
+  * 2.0 release: snap and flatpak compatibility
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Mon, 02 Mar 2020 16:10:43 +0300
+
 wasta-menus (1.9.7) bionic; urgency=medium
 
   * 2020 logo update
