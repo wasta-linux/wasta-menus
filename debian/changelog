@@ -1,3 +1,9 @@
+wasta-menus (1.9.7) bionic; urgency=medium
+
+  * 2020 logo update
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Mon, 02 Mar 2020 15:46:05 +0300
+
 wasta-menus (1.9.6) bionic; urgency=medium
 
   * adding flatpak and snap app directory compatibility

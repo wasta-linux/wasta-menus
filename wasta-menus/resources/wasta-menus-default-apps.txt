@@ -79,6 +79,8 @@
 
 # ParaTExt
 /usr/share/applications/paratext.desktop
+/usr/share/applications/paratext8.desktop
+/usr/share/applications/paratext9.desktop
 
 # WeSay
 /usr/share/applications/sil-wesay.desktop

@@ -163,7 +163,7 @@ done < "$LISTDIR/sorted-list.txt"
 # Display the dialog and store the users selections in a string
 #   with a semicolon delimiter between each selection
 SELECTED_APPS=$(zenity --list --title "Wasta-Menus Apps" \
-    --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
+    --window-icon=/usr/share/icons/hicolor/scalable/apps/wasta-menus.svg \
     --text "<b>Select the Wasta-Menus Apps for the current user:</b>" \
     --checklist --separator=";" --height=500 --print-column=3 \
     --column "" --column "App Name" --column "App Location" "${APP_LIST[@]}")
@@ -225,6 +225,6 @@ fi
 MSG+="<b>You may not see the changes until\nthe next login.</b>"
 
 zenity --info --no-wrap --title "Wasta-Menus Apps" --text="$MSG" \
-    --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png
+    --window-icon=/usr/share/icons/hicolor/scalable/apps/wasta-menus.svg
 
 exit 0

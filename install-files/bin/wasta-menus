@@ -59,7 +59,7 @@ radio() { if [ "$1" = "$RADIO_STATE" ]; then echo TRUE "${@}"; else echo FALSE "
 
 PARM=""
 PARM=$(zenity --list --title "Wasta-Menus" \
-    --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
+    --window-icon=/usr/share/icons/hicolor/scalable/apps/wasta-menus.svg \
     --height=450 --text \
 "This utility <b>ENABLES</b> or <b>DISABLES</b> the current user's Wasta-Menus,
     which reduce the applications visible in the Main Menu.
@@ -82,7 +82,7 @@ Use <b>Wasta-Menus Apps</b> to Add Apps to or Remove Apps from the current
 if [ -z "$PARM" ];
 then
     zenity --info --no-wrap \
-        --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
+        --window-icon=/usr/share/icons/hicolor/scalable/apps/wasta-menus.svg \
         --text "No Wasta-Menus <b>ACTION</b> selected.  Exiting..."
     exit 0
 fi
@@ -146,7 +146,7 @@ Work with and Administrator to solve the problem.\n\n"
 
         # give an "are you sure?" to the user
         CONFIRM=$(zenity --list --title "REMOVE Wasta-Menus Settings?" \
-            --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
+            --window-icon=/usr/share/icons/hicolor/scalable/apps/wasta-menus.svg \
             --text \
 "<b>Are you sure you want to completely REMOVE
 the current user's Wasta-Menus settings?</b>" --radiolist \
@@ -182,7 +182,7 @@ You may need to logout/login to see the changes."
 # Finished
 # ------------------------------------------------------------------------------
 zenity --info --title "Wasta-Menus: Finished" --no-wrap \
-        --window-icon=/usr/share/icons/hicolor/64x64/apps/wasta-menus.png \
+        --window-icon=/usr/share/icons/hicolor/scalable/apps/wasta-menus.svg \
         --text "$MSG"
 
 exit 0
