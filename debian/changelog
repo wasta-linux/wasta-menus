@@ -1,3 +1,9 @@
+wasta-menus (2.0.2) bionic; urgency=medium
+
+  * converted logo text to path so scales better
+
+ -- Rik Shaw <rikshaw76@gmail.com>  Sat, 21 Mar 2020 16:40:45 +0300
+
 wasta-menus (2.0.1) bionic; urgency=medium
 
   * padded logo
